@@ -11,15 +11,15 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/UAS-Devops/login-app.git"
+    "url": "git+https://github.com/halvest/UAS.git"
   },
   "keywords": [
     "login-app"
   ],
   "bugs": {
-    "url": "https://github.com/UAS-Devops/login-app/issues"
+    "url": "https://github.com/halvest/UAS/issues"
   },
-  "homepage": "https://github.com/UAS-Devops/login-app#readme",
+  "homepage": "https://github.com/halvest/UAS#readme",
   "dependencies": {
     "bcrypt": "^5.1.1",
     "express": "^4.19.2",
