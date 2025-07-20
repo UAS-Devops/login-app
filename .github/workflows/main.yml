@@ -24,15 +24,8 @@ jobs:
       - name: Run tests with coverage
         run: npm test
 
-      # [FIX] Menjalankan SonarScanner tanpa argumen.
-      # Konfigurasi akan dibaca dari sonar-project.properties
       - name: SonarQube Scan
-        run: |
-          docker run --rm --network=host `
-            -e SONAR_HOST_URL="${{ secrets.SONAR_HOST_URL }}" `
-            -e SONAR_TOKEN="${{ secrets.SONAR_TOKEN }}" `
-            -v "${{ github.workspace }}:/usr/src" `
-            sonarsource/sonar-scanner-cli
+        run: docker run --rm --network=host -e SONAR_HOST_URL="${{ secrets.SONAR_HOST_URL }}" -e SONAR_TOKEN="${{ secrets.SONAR_TOKEN }}" -v "${{ github.workspace }}:/usr/src" sonarsource/sonar-scanner-cli
         shell: powershell
 
   build_and_push:
@@ -55,13 +48,25 @@ jobs:
         with:
           context: .
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/uas-devops-app:latest 
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/login-app:${{ github.sha }}
 
   deploy:
     needs: build_and_push
     runs-on: self-hosted
     steps:
       - name: Deploy to Minikube
+        shell: powershell
         run: |
-          echo "Deploying to Minikube..."
-          kubectl set image deployment/login-app-deployment web-app=${{ secrets.DOCKERHUB_USERNAME }}/uas-devops-app:latest
+          Write-Host "Deploying to Minikube..."
+          kubectl set image deployment/login-app-deployment web-app=${{ secrets.DOCKERHUB_USERNAME }}/login-app:${{ github.sha }}
+
+      - name: Verify Deployment Rollout
+        shell: powershell
+        run: |
+          Write-Host "Verifying deployment rollout status..."
+          $status = kubectl rollout status deployment/login-app-deployment --timeout=60s
+          if ($LASTEXITCODE -ne 0) {
+            Write-Error "Deployment failed. Check logs."
+            exit 1
+          }
+
